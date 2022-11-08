@@ -90,14 +90,6 @@ async function run(){
             res.send(result)
         })
 
-        app.delete("/reviews/:id",jwtVerify,async(req,res)=>{
-            const id = req.params.id 
-            const query = {_id:ObjectId(id)}
-            const result = await reviewCollection.deleteOne(query)
-            res.send(result)
-            console.log(result)
-        })
-
         // get my reviews 
         app.get("/myreviews",jwtVerify,async(req,res)=>{
             const decoded = req.decoded 
@@ -111,7 +103,32 @@ async function run(){
             })
         })
 
+        app.delete("/myreviews/:id",jwtVerify,async(req,res)=>{
+            const id = req.params.id 
+            const query = {_id:ObjectId(id)}
+            const result = await reviewCollection.deleteOne(query)
+            res.send(result)
+        })
+        
+
+        app.patch('/myreviews/:id',jwtVerify,async(req,res)=>{
+            const id = req.params.id
+            const reviews = req.body 
+            const {review,rating,date} = reviews
+
+            const filter = {_id:ObjectId(id)}
+
+            const updateReview = {
+                $set:reviews
+            }
+
+            const result = await reviewCollection.updateOne(filter,updateReview)
+            console.log(result)
+            res.send(result)
+        })
     }
+
+
     finally{
         
     }
