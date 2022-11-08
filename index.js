@@ -17,7 +17,9 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run(){
     try{
         const serviceCollection = client.db("HomemadeCrunch").collection("services")
+        const reviewCollection = client.db("HomemadeCrunch").collection("reviews")
 
+        // services api
         app.get("/services",async(req,res)=>{
             const size = parseInt(req.query.size)
             if(size){
@@ -32,14 +34,24 @@ async function run(){
             })
         })
 
-        app.get("/service/:id",async(req,res)=>{
+        app.get("/services/:id",async(req,res)=>{
            const id = req.params.id 
            const result = await serviceCollection.findOne({_id:ObjectId(id)})
-           send({
+           res.send({
             status:true,
             data:result
            })
            console.log(result)
+        })
+
+
+        // review api
+        app.get("/reviews",async(req,res)=>{
+            const result = await reviewCollection.find({}).toArray()
+            res.send({
+                data:result
+            })
+            console.log(result)
         })
     
     }
