@@ -43,6 +43,13 @@ async function run(){
            })
         })
 
+         // add a service
+         app.post("/services",async(req,res)=>{
+            const service = req.body 
+            const result = await serviceCollection.insertOne(service)
+            res.send(result)
+            console.log(result)
+         })
 
         // review api
         app.get("/reviews",async(req,res)=>{
@@ -69,6 +76,8 @@ async function run(){
                 data:result
             })
         })
+
+       
 
        
     
