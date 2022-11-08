@@ -41,18 +41,36 @@ async function run(){
             status:true,
             data:result
            })
-           console.log(result)
         })
 
 
         // review api
         app.get("/reviews",async(req,res)=>{
-            const result = await reviewCollection.find({}).toArray()
+            const id = req.query.serviceId
+            console.log(id)
+            const query = {serviceId:id}
+            const result = await reviewCollection.find(query).toArray()
             res.send({
                 data:result
             })
-            console.log(result)
         })
+
+        app.post("/reviews",async(req,res)=>{
+            const review = req.body 
+            const result = await reviewCollection.insertOne(review)
+            res.send(result)
+        })
+
+        app.get("/myreviews",async(req,res)=>{
+            const emailAdd= req.query.email 
+            const query={email:emailAdd}
+            const result = await reviewCollection.find(query).toArray()
+            res.send({
+                data:result
+            })
+        })
+
+       
     
     }
     finally{
