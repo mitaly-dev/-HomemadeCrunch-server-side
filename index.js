@@ -2,12 +2,12 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
 const express = require('express')
 const cors = require('cors')
 require('dotenv').config()
+var jwt = require('jsonwebtoken');
 const app = express()
 const port = process.env.PORT || 5000 
 
 app.use(cors())
 app.use(express.json())
-
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.ojtfupc.mongodb.net/?retryWrites=true&w=majority`;
@@ -18,6 +18,15 @@ async function run(){
     try{
         const serviceCollection = client.db("HomemadeCrunch").collection("services")
         const reviewCollection = client.db("HomemadeCrunch").collection("reviews")
+
+
+        app.post('/jwt',(req,res)=>{
+            const user= req.body 
+            const token = jwt.sign(user,process.env.TOKEN,{expiresIn:'24h'})
+            res.send({token})
+            console.log(token)
+        })
+
 
         // services api
         app.get("/services",async(req,res)=>{
@@ -48,7 +57,6 @@ async function run(){
             const service = req.body 
             const result = await serviceCollection.insertOne(service)
             res.send(result)
-            console.log(result)
          })
 
         // review api
@@ -58,6 +66,7 @@ async function run(){
             const query = {serviceId:id}
             const result = await reviewCollection.find(query).toArray()
             res.send({
+                status:true,
                 data:result
             })
         })
@@ -68,19 +77,25 @@ async function run(){
             res.send(result)
         })
 
+        app.delete("/reviews/:id",async(req,res)=>{
+            const id = req.params.id 
+            const query = {_id:ObjectId(id)}
+            const result = await reviewCollection.deleteOne(query)
+            res.send(result)
+            console.log(result)
+        })
+
+        // get my reviews 
         app.get("/myreviews",async(req,res)=>{
             const emailAdd= req.query.email 
             const query={email:emailAdd}
             const result = await reviewCollection.find(query).toArray()
             res.send({
+                status:true,
                 data:result
             })
         })
 
-       
-
-       
-    
     }
     finally{
         
