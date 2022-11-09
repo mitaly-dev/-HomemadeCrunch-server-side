@@ -32,25 +32,31 @@ async function run(){
     try{
         const serviceCollection = client.db("HomemadeCrunch").collection("services")
         const reviewCollection = client.db("HomemadeCrunch").collection("reviews")
+        const blogCollection = client.db("HomemadeCrunch").collection("blog")
 
 
+        // get jwt token
         app.post('/jwt',(req,res)=>{
             const user= req.body 
             const token = jwt.sign(user,process.env.TOKEN,{expiresIn:'24h'})
             res.send({token})
-            console.log(token)
         })
 
-        // services api
+        // services api start
         app.get("/services",async(req,res)=>{
+            const productSize = parseInt(req.query.productSize)
+            const pageSize = parseInt(req.query.pageSize)
             const size = parseInt(req.query.size)
+
             if(size){
               result = await serviceCollection.find({}).limit(size).toArray()
             }
             else{
-             result = await serviceCollection.find({}).toArray()
+             result = await serviceCollection.find({}).skip(pageSize*productSize).limit(productSize).toArray()
             }
+            const count = await serviceCollection.count()
             res.send({
+                count:count,
                 status:true,
                 data:result
             })
@@ -72,10 +78,9 @@ async function run(){
             res.send(result)
          })
 
-        // review api
+        // review api start
         app.get("/reviews",async(req,res)=>{
             const id = req.query.serviceId
-            console.log(id)
             const query = {serviceId:id}
             const result = await reviewCollection.find(query).toArray()
             res.send({
@@ -92,11 +97,14 @@ async function run(){
 
         // get my reviews 
         app.get("/myreviews",jwtVerify,async(req,res)=>{
-            const decoded = req.decoded 
-            console.log(decoded)
+            const decoded = req.decoded.email
             const emailAdd= req.query.email 
+            if(decoded!==emailAdd){
+                return res.status(403).send({message:"Forbidden user"})
+            }
             const query={email:emailAdd}
             const result = await reviewCollection.find(query).toArray()
+          
             res.send({
                 status:true,
                 data:result
@@ -114,20 +122,24 @@ async function run(){
         app.patch('/myreviews/:id',jwtVerify,async(req,res)=>{
             const id = req.params.id
             const reviews = req.body 
-            const {review,rating,date} = reviews
-
+          
             const filter = {_id:ObjectId(id)}
-
             const updateReview = {
                 $set:reviews
             }
-
             const result = await reviewCollection.updateOne(filter,updateReview)
-            console.log(result)
             res.send(result)
         })
-    }
 
+        // get blog data 
+        app.get("/blog",async(req,res)=>{
+            const result = await blogCollection.find({}).toArray()
+            res.send({
+                status:true,
+                data:result
+            })
+        })
+    }
 
     finally{
         
@@ -135,19 +147,7 @@ async function run(){
 }
 run().catch(error=>console.error(error))
 
-
-
-
-
-
-
-
-
-
-app.get("/",(req,res)=>{
-    res.send("iam from kitchen")
-})
-
 app.listen(port,()=>{
     console.log(`HomemadeCurnch server is running on ${port}`)
 })
+
