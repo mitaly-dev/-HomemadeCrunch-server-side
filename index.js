@@ -49,11 +49,12 @@ async function run(){
             const size = parseInt(req.query.size)
             let result = []
             if(size){
-              result = await serviceCollection.find({}).limit(size).toArray()
+            result = await serviceCollection.find().sort({ _id: -1 }).limit(size).toArray()
             }
             else{
              result = await serviceCollection.find({}).skip(pageSize*productSize).limit(productSize).toArray()
             }
+            console.log(result)
             const count = await serviceCollection.count()
             res.send({
                 count:count,
