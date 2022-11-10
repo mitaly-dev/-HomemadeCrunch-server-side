@@ -47,7 +47,7 @@ async function run(){
             const productSize = parseInt(req.query.productSize)
             const pageSize = parseInt(req.query.pageSize)
             const size = parseInt(req.query.size)
-
+            let result = []
             if(size){
               result = await serviceCollection.find({}).limit(size).toArray()
             }
